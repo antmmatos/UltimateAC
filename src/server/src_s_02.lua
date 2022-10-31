@@ -59,9 +59,6 @@ RegisterServerEvent('UltimateAC:AddWeapon', function(player, weaponhash)
     local playerSource = NetworkGetFirstEntityOwner(playerNet)
     local _src = tonumber(playerSource)
     local hashWeapon = tonumber(weaponhash)
-    if inTable(weaponsHashNotInclude, hashWeapon) then
-        return
-    end
     if ValidWeapons[_src] == nil then
         ValidWeapons[_src] = {}
     end
@@ -256,25 +253,16 @@ end)
 
 CreateThread(function()
     while true do
-        if Validated then
-            if DBLoaded then
-                Citizen.Wait(tonumber(Config.BanReload) * 1000)
-                LoadBans()
-                print(" ^7|| ^1[UltimateAC] ^7|| ^2BanList reloaded! ^7")
-            end
-            Citizen.Wait(0)
+        if DBLoaded then
+            Citizen.Wait(tonumber(Config.BanReload) * 1000)
+            LoadBans()
+            print(" ^7|| ^1[UltimateAC] ^7|| ^2BanList reloaded! ^7")
         end
         Citizen.Wait(0)
     end
 end)
 
 function LoadBans()
-    while not DatabaseLoaded do
-        Citizen.Wait(100)
-    end
-    while not Validated do
-        Citizen.Wait(100)
-    end
     MySQL.Async.fetchAll('SELECT * FROM UltimateAC', {}, function(identifiers)
         BanList = {}
         for i = 1, #identifiers, 1 do

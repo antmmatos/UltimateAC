@@ -59,9 +59,6 @@ if Config.AntiWeaponSpawning then
             for _, v in ipairs(ListWeapons) do
                 local weaponHash = GetHashKey(v)
                 if HasPedGotWeapon(_ped, weaponHash, false) == 1 then
-                    if inTable(weaponsHashNotInclude, weaponHash) then
-                        return
-                    end
                     table.insert(weaponsHasGot, weaponHash)
                 end
             end

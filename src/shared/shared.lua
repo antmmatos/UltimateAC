@@ -50,13 +50,6 @@ function inTable(table, item)
 	return false
 end
 
-function inTableHash(table, item)
-	for _,v in pairs(table) do
-		if GetHashKey(v) == item then return true end
-	end
-	return false
-end
-
 function TableCompare(a,b)
 	local t1,t2 = {}, {}
 	for k,v in pairs(a) do
@@ -360,32 +353,4 @@ ListWeaponsHashes = {
     GetHashKey('COMPONENT_AT_SCOPE_LARGE'),
     GetHashKey('COMPONENT_AT_SCOPE_MAX'),
     GetHashKey('COMPONENT_AT_PI_SUPP'),
-}
-
-
-weaponsHashNotInclude = {
-	-1569615261,
-	2725352035,
-	-1768145561,
-	-1075685676,
-	1777342301,
-	1895189586,
-	-1326945657,
-	883325847,
-	-423489987,
-	-1194089827,
-	2031797409,
-	-72657034,
-	-1491061156,
-	-722274890,
-	1471386021,
-	1875733908,
-	-1951375401,
-	1540159264,
-	-196322845,
-	2024373456,
-	961495388,
-	-1786099057,
-	-86904375,
-	-102973651
 }

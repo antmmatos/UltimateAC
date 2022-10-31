@@ -1,82 +1,7 @@
 ESX = nil
-Ultimate = nil
-Validated = nil
-DatabaseLoaded = false
-turnoff = os.exit
-local entitiesSpawned = {}
-local otherEntitiesSpawned = {}
-local vehiclesSpawned = {}
-local pedsSpawned = {}
-
-if not GetResourceState("UltimateCore") == "started" then
-    print("UltimateCore is not running, please check your server.cfg file")
-    StopResource(GetCurrentResourceName())
-    turnoff()
-end
 
 Citizen.CreateThread(function()
-    Validated = exports["UltimateCore"]:getAuth(GetCurrentResourceName(), Config.Version)
-
-    Citizen.CreateThread(function()
-        while not Validated do
-            TriggerEvent("UltimateCore:getLicensesStatus", function(status)
-                if status[GetCurrentResourceName()] then
-                    Validated = true
-                else
-                    Validated = false
-                end
-            end)
-            Citizen.Wait(1000)
-        end
-    end)
-end)
-
-Ultimate = exports["UltimateCore"]:GetUltimateObject()
-
-Citizen.CreateThread(function()
-    while not Validated do
-        Citizen.Wait(1000)
-    end
-    if Validated then
-        print("^7[^2UltimateAC^7] Checking Config...")
-        if not Config.MySQLSystem == "mysql-async" and not Config.MySQLSystem == "oxmysql" then
-            print("^7[^2UltimateAC^7] Config error: MySQLSystem is not set to 'mysql-async' or 'oxmysql'.")
-            StopResource(GetCurrentResourceName())
-        end
-        print("^7[^2UltimateAC^7] Config Verified")
-        print("^7[^2UltimateAC^7] Checking table...")
-        local TableExists
-        if Config.MySQLSystem == "mysql-async" then
-            TableExists = MySQL.Sync.fetchAll(
-                "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = @database AND TABLE_NAME = 'UltimateAC'",
-                {
-                    ["@database"] = Config.DatabaseName
-                })
-        elseif Config.MySQLSystem == "oxmysql" then
-            TableExists = MySQL.query.await(
-                "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'UltimateAC'",
-                {Config.DatabaseName})
-            TableExists = TableExists[1]
-        end
-        if not TableExists[1] then
-            print("^7[^2UltimateAC^7] Table not found...")
-            print("^7[^2UltimateAC^7] Creating table...")
-            if Config.MySQLSystem == "mysql-async" then
-                MySQL.Async.execute(
-                    "CREATE TABLE `UltimateAC` (`ID` INT NOT NULL AUTO_INCREMENT, `PlayerName` VARCHAR(50) NOT NULL, `SteamID` VARCHAR(50) NOT NULL, `License` VARCHAR(50) NOT NULL, `DiscordID` VARCHAR(40) NOT NULL, `PlayerIP` VARCHAR(20) NOT NULL, `Date` VARCHAR(20) NOT NULL, `Reason` VARCHAR(100) NOT NULL, `Admin` VARCHAR(100) NOT NULL, `Screenshot` VARCHAR(50) NULL, `isManual` TINYINT NOT NULL DEFAULT '0', PRIMARY KEY (`ID`));",
-                    {})
-            elseif Config.MySQLSystem == "oxmysql" then
-                MySQL.query.await(
-                    "CREATE TABLE `UltimateAC` (`ID` INT NOT NULL AUTO_INCREMENT, `PlayerName` VARCHAR(50) NOT NULL, `SteamID` VARCHAR(50) NOT NULL, `License` VARCHAR(50) NOT NULL, `DiscordID` VARCHAR(40) NOT NULL, `PlayerIP` VARCHAR(20) NOT NULL, `Date` VARCHAR(20) NOT NULL, `Reason` VARCHAR(100) NOT NULL, `Admin` VARCHAR(100) NOT NULL, `Screenshot` VARCHAR(50) NULL, `isManual` TINYINT NOT NULL DEFAULT '0', PRIMARY KEY (`ID`));",
-                    {})
-            end
-            print("^7[^2UltimateAC^7] Table created.")
-        else
-            print("^7[^2UltimateAC^7] Table found...")
-        end
-        print("^7[^2UltimateAC^7] Starting script...")
-        DatabaseLoaded = true
-    end
+    print("^7[^2UltimateAC^7] Anticheat iniciado.")
 end)
 
 TriggerEvent(Ultimate.GetTrigger("esx:getSharedObject"), function(obj)
@@ -86,16 +11,16 @@ end)
 RegisterServerEvent("UltimateAC:ScreenshotLog")
 AddEventHandler("UltimateAC:ScreenshotLog", function(link, player)
     local message = "[Click here](" .. link .. ") to see a Screenshot from Player " .. GetPlayerName(player) ..
-                        " with ID: " .. player .. " requested by " .. GetPlayerName(source) .. " with ID: " .. source ..
-                        "."
-    local logembed = {{
+        " with ID: " .. player .. " requested by " .. GetPlayerName(source) .. " with ID: " .. source ..
+        "."
+    local logembed = { {
         color = "15536915",
         title = "**UltimateAnticheat**",
         description = message,
         footer = {
             text = "UltimateAC - " .. Config.Version .. " | " .. os.date("%Y/%m/%d %X")
         }
-    }}
+    } }
     PerformHttpRequest(Config.WebhookScreenshotRequests, function(err, text, headers)
     end, 'POST', json.encode({
         username = "UltimateAC | Screenshot Requests",
@@ -105,30 +30,60 @@ AddEventHandler("UltimateAC:ScreenshotLog", function(link, player)
     })
 end)
 
-Ultimate.CreateCallback("UltimateAC:getAllPlayers", function(source, cb)
-    local AllPlayers = ESX.GetPlayers()
-    local TablePlayers = {}
-    for i = 1, #AllPlayers do
-        TablePlayers[AllPlayers[i]] = GetPlayerName(AllPlayers[i])
-    end
-    cb(TablePlayers)
-end)
-
-local BlockedExplosions = {0, 1, 2, 4, 5, 18, 19, 32, 33, 37, 38}
+local BlockedExplosions = { 0, 1, 2, 4, 5, 18, 19, 32, 33, 37, 38 }
 
 AddEventHandler("explosionEvent", function(sender, ev)
-    if Config.AntiExplosions then
-        for _, v in ipairs(BlockedExplosions) do
-            if ev.explosionType == v then
-                local uPlayer = Ultimate.GetPlayerFromId(tonumber(sender))
-                if not uPlayer.isAdmin() then
-                    TriggerEvent("UltimateAC:BanPlayer", string.format(Locale[Config.Locale]["BanMessage"],
-                        string.format(Locale[Config.Locale]["ExplosionDetected"], ev.explosionType)), "AntiCheat", sender,
-                        string.format(Locale[Config.Locale]["ExplosionDetected"], ev.explosionType))
-                    CancelEvent()
+    if tonumber(SRC) then
+        local HWID = GetPlayerToken(SRC, 0)
+        if DATA ~= nil then
+            local TABLE = Explosion[DATA.explosionType]
+            if TABLE ~= nil then
+                local NAME = TABLE.NAME
+                if TABLE.Log then
+                    FIREAC_SENDLOG(SRC, FIREAC.Log.Exoplosion, "EXPLOSION", NAME)
+                end
+                if TABLE.Punishment ~= nil and TABLE.Punishment ~= false then
+                    if TABLE.Punishment == "WARN" then
+                        FIREAC_ACTION(SRC, TABLE.Punishment, "Anti Explosion",
+                            "Try For Create Black List Explosion : **" .. NAME .. "**")
+                        CancelEvent()
+                    elseif TABLE.Punishment == "KICK" then
+                        FIREAC_ACTION(SRC, TABLE.Punishment, "Anti Explosion",
+                            "Try For Create Black List Explosion : **" .. NAME .. "**")
+                        CancelEvent()
+                    elseif TABLE.Punishment == "BAN" then
+                        FIREAC_ACTION(SRC, TABLE.Punishment, "Anti Explosion",
+                            "Try For Create Black List Explosion : **" .. NAME .. "**")
+                        CancelEvent()
+                    end
                 end
             end
+            --【 𝗦𝗽𝗮𝗺 𝗖𝗵𝗲𝗰𝗸 】--
+            if FIREAC.AntiExplosionSpam then
+                if EXPLOSION[HWID] ~= nil then
+                    EXPLOSION[HWID].COUNT = EXPLOSION[HWID].COUNT + 1
+                    if os.time() - EXPLOSION[HWID].TIME <= 10 then
+                        EXPLOSION[HWID] = nil
+                    else
+                        if EXPLOSION[HWID].COUNT >= FIREAC.MaxExplosion then
+                            FIREAC_ACTION(SRC, FIREAC.ExplosionSpamPunishment, "Anti Spam Explosion",
+                                "Try For Spam Explosion Type: " ..
+                                DATA.explosionType .. " for " .. EXPLOSION[HWID].COUNT .. " times.")
+                            CancelEvent()
+                        end
+                    end
+                else
+                    EXPLOSION[HWID] = {
+                        COUNT = 1,
+                        TIME  = os.time()
+                    }
+                end
+            end
+        else
+            CancelEvent()
         end
+    else
+        CancelEvent()
     end
 end)
 
@@ -156,14 +111,14 @@ function LogToDiscordBan(playerid, log, link)
     else
         message = log .. "\n**Screenshot:** [Click here](" .. link .. ")"
     end
-    local logembed = {{
+    local logembed = { {
         color = "15536915",
         title = "**Ultimate Anticheat**",
         description = message,
         footer = {
             text = "UltimateAC - " .. Config.Version .. " | " .. os.date("%Y/%m/%d %X")
         }
-    }}
+    } }
     PerformHttpRequest(Config.WebhookBans, function(err, text, headers)
     end, 'POST', json.encode({
         username = "UltimateAC | Ban Logs",
@@ -181,14 +136,14 @@ function LogToDiscordBan(playerid, log, link)
 end
 
 function LogToDiscordTrigger(playerid, log)
-    local logembed = {{
+    local logembed = { {
         color = "15536915",
         title = "**Ultimate Anticheat**",
         description = log,
         footer = {
             text = "UltimateAC - " .. Config.Version .. " | " .. os.date("%Y/%m/%d %X")
         }
-    }}
+    } }
     PerformHttpRequest(Config.WebhookTriggers, function(err, text, headers)
     end, 'POST', json.encode({
         username = "UltimateAC | Blacklist Triggers Logs",
@@ -206,14 +161,14 @@ function LogToDiscordTrigger(playerid, log)
 end
 
 function LogToDiscordObjects(playerid, log)
-    local logembed = {{
+    local logembed = { {
         color = "15536915",
         title = "**Ultimate Anticheat**",
         description = log,
         footer = {
             text = "UltimateAC - " .. Config.Version .. " | " .. os.date("%Y/%m/%d %X")
         }
-    }}
+    } }
     PerformHttpRequest(Config.WebhookProps, function(err, text, headers)
     end, 'POST', json.encode({
         username = "UltimateAC | Blacklist Objects Logs",
@@ -339,10 +294,12 @@ Citizen.CreateThread(function()
                     return
                 end
                 LogToDiscordTrigger(_source,
-                    "**Player Name:** " .. PlayerName .. "\n**ServerID:** " .. _source .. "\n**SteamID:** " .. SteamID ..
-                        "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
-                        DiscordID:gsub("discord:", "") .. ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Trigger:** " ..
-                        trigger)
+                    "**Player Name:** " ..
+                    PlayerName .. "\n**ServerID:** " .. _source .. "\n**SteamID:** " .. SteamID ..
+                    "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
+                    DiscordID:gsub("discord:", "") ..
+                    ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Trigger:** " ..
+                    trigger)
                 TriggerEvent("UltimateAC:BanPlayer", string.format(Locale[Config.Locale]["BanMessage"], string.format(
                     Locale[Config.Locale]["BlacklistTrigger"], trigger)), "AntiCheat", _source,
                     string.format(Locale[Config.Locale]["BlacklistTrigger"], trigger))
@@ -424,8 +381,8 @@ AddEventHandler("entityCreating", function(entity)
                         Locale[Config.Locale]["MassPropSpawn"]), "AntiCheat", _src,
                         Locale[Config.Locale]["MassPropSpawn"])
                 end
-            ----- End Prop Verification -----
-            ----- Start Vehicle Verification -----
+                ----- End Prop Verification -----
+                ----- Start Vehicle Verification -----
             elseif GetEntityType(entity) == 2 then
                 if inTable(Blacklist["Vehicles"], model) then
                     LogProps(_src, model)
@@ -442,8 +399,8 @@ AddEventHandler("entityCreating", function(entity)
                         Locale[Config.Locale]["MassVehicleSpawn"])
                     CancelEvent()
                 end
-            ----- End Vehicle Verification -----
-            ----- Start Peds Verification -----
+                ----- End Vehicle Verification -----
+                ----- Start Peds Verification -----
             elseif GetEntityType(entity) == 1 then
                 for k, v in pairs(Blacklist["Peds"]) do
                     if model == GetHashKey(v) then
@@ -468,7 +425,7 @@ AddEventHandler("entityCreating", function(entity)
                     TriggerEvent("UltimateAC:BanPlayer", string.format(Locale[Config.Locale]["BanMessage"],
                         Locale[Config.Locale]["MassPedSpawn"]), "AntiCheat", _src, Locale[Config.Locale]["MassPedSpawn"])
                 end
-            ----- End Peds Verification -----
+                ----- End Peds Verification -----
             end
         end
     end
@@ -523,9 +480,9 @@ function LogPropsMass(src, quantity, model)
     end
     LogToDiscordObjects(src,
         "**Player Name:** " .. PlayerName .. "\n**ServerID:** " .. src .. "\n**SteamID:** " .. SteamID ..
-            "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
-            DiscordID:gsub("discord:", "") .. ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Object:** " .. model ..
-            "\n**Quantity:** " .. quantity)
+        "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
+        DiscordID:gsub("discord:", "") .. ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Object:** " .. model ..
+        "\n**Quantity:** " .. quantity)
 end
 
 function LogProps(src, model)
@@ -558,8 +515,8 @@ function LogProps(src, model)
     end
     LogToDiscordObjects(src,
         "**Player Name:** " .. PlayerName .. "\n**ServerID:** " .. src .. "\n**SteamID:** " .. SteamID ..
-            "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
-            DiscordID:gsub("discord:", "") .. ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Object:** " .. model)
+        "\n**License:** " .. License .. "\n**DiscordID:** " .. DiscordID .. "\n**Discord Tag:** <@" ..
+        DiscordID:gsub("discord:", "") .. ">\n**IP:** " .. PlayerIP:gsub("ip:", "") .. "\n**Object:** " .. model)
 end
 
 RegisterServerEvent("UltimateAC:clearLoadout")
@@ -640,19 +597,19 @@ function ScreenshotCommand(link, source, player)
     local message
     if source == "Console" then
         message = "[Click here](" .. link .. ") to see a Screenshot from Player " .. GetPlayerName(player) ..
-                        " with ID: " .. player .. " requested by Console."
+            " with ID: " .. player .. " requested by Console."
     else
         message = "[Click here](" .. link .. ") to see a Screenshot from Player " .. GetPlayerName(player) ..
-                        " with ID: " .. player .. " requested by " .. GetPlayerName(source) .. " with ID: " .. source .. "."
+            " with ID: " .. player .. " requested by " .. GetPlayerName(source) .. " with ID: " .. source .. "."
     end
-    local logembed = {{
+    local logembed = { {
         color = "15536915",
         title = "**UltimateAnticheat**",
         description = message,
         footer = {
             text = "UltimateAC - " .. Config.Version .. " | " .. os.date("%Y/%m/%d %X")
         }
-    }}
+    } }
     PerformHttpRequest(Config.WebhookScreenshotRequests, function(err, text, headers)
     end, 'POST', json.encode({
         username = "UltimateAC | Screenshot Requests",
