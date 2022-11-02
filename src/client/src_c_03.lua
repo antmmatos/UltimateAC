@@ -1,14 +1,46 @@
-local ScreenShotPlayer = RegisterClientCallback {
-	eventName = 'UltimateAC:RequestScreenshot',
-	eventCallback = function(...)
-		ScreenPlayer = nil
-		local promise = promise.new()
-		exports['screenshot-basic']:requestScreenshotUpload("http://185.113.141.63:3555/upload/", 'files[]', { quality = 1, encoding = 'webp'}, function(data)
-			resp = json.decode(data)
-			ScreenPlayer = resp.files[1].url
-			promise:resolve(ScreenPlayer)
-		end)
-		Citizen.Await(promise)
-		return ScreenPlayer
-	end
-}
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetInvokingResource() then
+        VerifyResStop(resourceName)
+    end
+end)
+
+AddEventHandler('onClientResourceStop', function(resourceName)
+    if resourceName == GetInvokingResource() then
+        VerifyResStop(resourceName)
+    end
+end)
+
+_G.AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetInvokingResource() then
+        VerifyResStop(resourceName)
+    end
+end)
+
+_G.AddEventHandler('onClientResourceStop', function(resourceName)
+    if resourceName == GetInvokingResource() then
+        VerifyResStop(resourceName)
+    end
+end)
+
+function VerifyResStop(resourceName)
+    -- TODO BAN, START/STOP/RESTART
+    return CancelEvent()
+end
+
+local DarArma = GiveWeaponToPed
+GiveWeaponToPed = function(ped, weaponhash, ...)
+    TriggerServerEvent('UltimateAC:AddWeapon', weaponhash)
+    return DarArma(ped, weaponhash, ...)
+end
+
+local RemoveArma = RemoveWeaponFromPed
+RemoveWeaponFromPed = function(ped, weaponhash, ...)
+    TriggerServerEvent('UltimateAC:RemoveWeapon', weaponhash)
+    return RemoveArma(ped, weaponhash, ...)
+end
+
+local RemoveAllArma = RemoveAllPedWeapons
+RemoveAllPedWeapons = function(ped, ...)
+    TriggerServerEvent('UltimateAC:ClearWeapons')
+    return RemoveAllArma(ped, ...)
+end

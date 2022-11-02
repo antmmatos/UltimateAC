@@ -42,14 +42,6 @@ SetInterval = setmetatable({currentId = 0}, {
 	end
 })
 
-
-function inTable(table, item)
-	for _,v in pairs(table) do
-		if v == item then return true end
-	end
-	return false
-end
-
 function TableCompare(a,b)
 	local t1,t2 = {}, {}
 	for k,v in pairs(a) do

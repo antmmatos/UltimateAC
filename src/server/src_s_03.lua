@@ -1,19 +1,83 @@
 local filestring = 'client_script "@' .. GetCurrentResourceName() .. '/src/client/src_c_06.lua"'
 local installedResourcesNum
 
-RegisterCommand("ultimatemanager", function(source, args, rawCommand)
-    if Validated then
+RegisterCommand("ultimate", function(source, args, rawCommand)
+    if args[1] == nil then
+        if source == 0 then return end
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer.getGroup() == "admin" or xPlayer.getGroup() == "mod" then
+            PerformHttpRequest("http://localhost/ACMenu", function(arg, request)
+                TriggerClientEvent("UltimateAC:openMenu", source, request)
+            end)
+        end
+    elseif args[1] == "print" then
+        if not args[2] or not tonumber(args[2]) then
+            return
+        end
+        exports["discord-screenshot"]:requestCustomClientScreenshotUploadToDiscord(
+            tonumber(args[2]),
+            Webhooks["screenshots"]
+            ,
+            {
+                encoding = "png",
+                quality = 1
+            },
+            {
+                username = "UltimateAC Logs - Screenshots"
+            },
+            30000
+        )
+        -- TODO LOG, SCREENSHOT
+    elseif args[1] == "reload" then
+        if source == 0 then
+            LoadBans()
+            print("^1[UltimateAC] ^2BanList recarregada!")
+        else
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if xPlayer.getGroup() == "admin" or xPlayer.getGroup() == "mod" then
+                LoadBans()
+                TriggerClientEvent("esx:showNotification", source, "UltimateAC", "BanList recarregada.", 2000, "success")
+            end
+        end
+    elseif args[1] == "unban" then
+        if args[2] ~= nil then
+            if source ~= 0 then
+                local xPlayer = ESX.GetPlayerFromId(source)
+                if xPlayer.getGroup() == "admin" or xPlayer.getGroup() == "mod" then
+                    local linesChanged = MySQL.query.await(
+                        "DELETE FROM ultimateac WHERE SteamID = ? OR License = ? OR DiscordID = ? OR IP = ? OR XBL = ? OR LiveID = ?"
+                        ,
+                        { args[2] })
+                    if linesChanged > 0 then
+                        TriggerClientEvent("esx:showNotification", source, "UltimateAC", "Banimento removido.", 2000,
+                            "success")
+                    else
+                        TriggerClientEvent("esx:showNotification", source, "UltimateAC", "Jogador não encontrado.", 2000
+                            , "error")
+                    end
+                end
+            else
+                local linesChanged = MySQL.query.await(
+                    "DELETE FROM ultimateac WHERE SteamID = ? OR License = ? OR DiscordID = ? OR IP = ? OR XBL = ? OR LiveID = ?"
+                    ,
+                    { args[2] })
+                if linesChanged > 0 then
+                    print("^1[UltimateAC] ^2Banimento removido")
+                else
+                    print("^1[UltimateAC] ^2Jogador não encontrado.")
+                end
+            end
+        end
+    elseif args[1] == "manager" then
         if source == 0 then
             local found
-            if not args[1] then
-                print("----------------------------------------------------------------")
-                print("^7|| ^1[UltimateAC] ^7|| ^1Use ^2/Ultimatemanager [install/uninstall] [none/fx].^7")
-                print("----------------------------------------------------------------")
+            if not args[2] then
+                print("^1[UltimateAC] ^1Use ^2/ultimate manager [install/uninstall] [none/fx].^7")
                 return
             end
-            if args[1] == "install" then
+            if args[2] == "install" then
                 installedResourcesNum = 0
-                if args[2] == "fx" then
+                if args[3] == "fx" then
                     local resourcenumber = GetNumResources()
                     local installedResources = {}
                     for i = 0, resourcenumber - 1 do
@@ -43,16 +107,16 @@ RegisterCommand("ultimatemanager", function(source, args, rawCommand)
                         end
                     end
                     print("----------------------------------------------------------------")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Installed on ^2" .. installedResourcesNum .. " ^1resources.^7")
+                    print("^1[UltimateAC] ^1Installed on ^2" .. installedResourcesNum .. " ^1resources.^7")
                     if installedResourcesNum ~= 0 then
-                        print("^7|| ^1[UltimateAC] ^7|| ^1List of resources: ^7")
+                        print("^1[UltimateAC] ^1List of resources: ^7")
                         for i = 1, #installedResources do
-                            print("^7|| ^1[UltimateAC] ^7|| ^1 - ^2" .. installedResources[i])
+                            print("^1[UltimateAC] ^1 - ^2" .. installedResources[i])
                         end
                     end
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Restart the server to apply.^7")
+                    print("^1[UltimateAC] ^1Restart the server to apply.^7")
                     print("----------------------------------------------------------------")
-                elseif args[2] == nil then
+                elseif args[3] == nil then
                     local resourcenumber = GetNumResources()
                     local installedResources = {}
                     for i = 0, resourcenumber - 1 do
@@ -82,18 +146,18 @@ RegisterCommand("ultimatemanager", function(source, args, rawCommand)
                         end
                     end
                     print("----------------------------------------------------------------")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Installed on ^2" .. installedResourcesNum .. " ^1resources.^7")
+                    print("^1[UltimateAC] ^1Installed on ^2" .. installedResourcesNum .. " ^1resources.^7")
                     if installedResourcesNum ~= 0 then
-                        print("^7|| ^1[UltimateAC] ^7|| ^1List of resources: ^7")
+                        print("^1[UltimateAC] ^1List of resources: ^7")
                         for i = 1, #installedResources do
-                            print("^7|| ^1[UltimateAC] ^7|| ^1 - ^2" .. installedResources[i])
+                            print("^1[UltimateAC] ^1 - ^2" .. installedResources[i])
                         end
                     end
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Restart the server to apply.^7")
+                    print("^1[UltimateAC] ^1Restart the server to apply.^7")
                     print("----------------------------------------------------------------")
                 end
-            elseif args[1] == "uninstall" then
-                if args[2] == "fx" then
+            elseif args[2] == "uninstall" then
+                if args[3] == "fx" then
                     local resourcenumber = GetNumResources()
                     for i = 0, resourcenumber - 1 do
                         local path = GetResourcePath(GetResourceByFindIndex(i))
@@ -121,10 +185,10 @@ RegisterCommand("ultimatemanager", function(source, args, rawCommand)
                         end
                     end
                     print("----------------------------------------------------------------")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Uninstalled from ^2fxmanifest.lua ^1with success.^7")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Restart the server to apply.^7")
+                    print("^1[UltimateAC] ^1Uninstalled from ^2fxmanifest.lua ^1with success.^7")
+                    print("^1[UltimateAC] ^1Restart the server to apply.^7")
                     print("----------------------------------------------------------------")
-                elseif args[2] == nil then
+                elseif args[3] == nil then
                     local resourcenumber = GetNumResources()
                     for i = 0, resourcenumber - 1 do
                         local path = GetResourcePath(GetResourceByFindIndex(i))
@@ -152,14 +216,14 @@ RegisterCommand("ultimatemanager", function(source, args, rawCommand)
                         end
                     end
                     print("----------------------------------------------------------------")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Uninstalled from ^2__resource.lua ^1with success.^7")
-                    print("^7|| ^1[UltimateAC] ^7|| ^1Restart the server to apply.^7")
+                    print("^1[UltimateAC] ^1Uninstalled from ^2__resource.lua ^1with success.^7")
+                    print("^1[UltimateAC] ^1Restart the server to apply.^7")
                     print("----------------------------------------------------------------")
                 end
             end
         else
-            TriggerClientEvent(Ultimate.GetTrigger("esx:showNotification"), source,
-                "This command can be only executed on console.")
+            TriggerClientEvent("esx:showNotification", source, "UltimateAC",
+                "Este comando só pode ser executado pela consola.", 2000, "error")
         end
     end
 end)

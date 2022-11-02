@@ -1,4 +1,4 @@
-Blacklist["Vehicles"] = {"cargoplane", "dump", "avenger", 'avenger2', "luxor", "khanjali", "rhino", "insurgent", 't20',
+Table["Vehicles"] = {"cargoplane", "dump", "avenger", 'avenger2', "luxor", "khanjali", "rhino", "insurgent", 't20',
                          "insurgent3", "maverick", "blimp2", "blimp", "blimp3", "freight",
                          "freightcar", "limo2", 'freightcont1', "freightcont2", "freightgrain", "cerberus3",
                          "cerberus2", "cerberus", "buzzard", "phantom2", "issi6", "issi4", "issi5", "savage", "hunter",

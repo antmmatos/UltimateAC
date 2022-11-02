@@ -1,4 +1,4 @@
-Blacklist["Events"] = {"redst0nia:checking", "gcPhone:_internalAddMessage", "gcPhone:tchat_channel",
+Table["Events"] = {"redst0nia:checking", "gcPhone:_internalAddMessage", "gcPhone:tchat_channel",
                        "esx_vehicleshop:setVehicleOwned", "esx_mafiajob:confiscatePlayerItem", "lscustoms:payGarage",
                        "vrp_slotmachine:server:2", "Banca:deposit", "bank:deposit", "esx_jobs:caution", "give_back",
                        "esx_fueldelivery:pay", "esx_carthief:pay", "esx_godirtyjob:pay", "esx_pizza:pay",

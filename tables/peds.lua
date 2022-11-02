@@ -1,4 +1,4 @@
-Blacklist["Peds"] = {"u_m_y_mani", "a_m_y_motox_01", "cs_movpremf_01", "cs_movpremmale", "u_f_o_moviestar",
+Table["Peds"] = {"u_m_y_mani", "a_m_y_motox_01", "cs_movpremf_01", "cs_movpremmale", "u_f_o_moviestar",
                      "s_f_y_movprem_01", "s_m_m_movprem_01", "s_m_m_movspace_01", "mp_g_m_pros_01", "ig_mrk", "cs_mrk",
                      "ig_mrsphillips", "cs_mrsphillips", "ig_mrs_thornhill", "cs_mrs_thornhill", "a_m_y_musclbeac_01",
                      "a_m_y_musclbeac_02", "ig_natalia", "cs_natalia", "ig_nervousron", "cs_nervousron", "ig_nigel",
@@ -14,5 +14,3 @@ Blacklist["Peds"] = {"u_m_y_mani", "a_m_y_motox_01", "cs_movpremf_01", "cs_movpr
                      "s_m_y_armymech_01", "s_m_y_blackops_01", "s_m_y_blackops_02", "s_m_y_blackops_03",
                      "s_m_m_movalien_01", "s_m_y_factory_01", "s_f_y_factory_01", "mp_m_fibsec_01", "s_m_m_fibsec_01",
                      "a_m_m_tranvest_01", "a_m_m_tranvest_02", "g_m_m_chemwork_01", "a_m_m_hasjew_01"}
-
-Whitelist["Peds"] = {"a_c_deer", "a_c_boar", "a_c_mtlion", "a_c_coyote"}
